@@ -8,6 +8,7 @@ Override `CSV#initialize` to add a converter that will sanitize fields being rea
 
 A description of CSV injection attacks on [OWASP](https://www.owasp.org/index.php/CSV_Excel_Macro_Injection) 
 
+Made while working at [Influitive](https://influitive.com/)
 
 ## Installation
 
