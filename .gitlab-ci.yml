@@ -1,0 +1,20 @@
+image: ruby:2.4.4-alpine
+
+stages:
+  - test
+
+test:
+  stage: test
+  before_script:
+    - apk add --no-cache build-base
+    - bundle install --no-deployment --jobs 8 --path /cache
+  script:
+    - bundle exec rspec
+
+ruby-lint:
+  stage: test
+  before_script:
+    - apk add --no-cache build-base 
+    - bundle install --no-deployment --jobs 8 --path /cache
+  script:
+    - bundle exec rubocop
