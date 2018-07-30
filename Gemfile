@@ -8,3 +8,6 @@ group :development, :test do
   gem 'pry', '~> 0.10.4'
   gem 'rubocop', '~> 0.58.2'
 end
+
+gem 'simplecov', require: false, group: :test
+

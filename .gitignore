@@ -13,3 +13,4 @@ csv-safe*.gem
 # rspec failure tracking
 .rspec_status
 Gemfile.lock
+coverage
