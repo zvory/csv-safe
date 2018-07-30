@@ -16,31 +16,42 @@ class CSVSafe < CSV
 
   private
 
+  # TODO: performance test if i'm adding
+  # too many method calls to hot code
+  def starts_with_special_character?(str)
+    %w[- = + @].include?(str[0])
+  end
+
+  def prefix(field)
+    encoded = field.encode(CSV::ConverterEncoding)
+    "'" + encoded
+  rescue StandardError
+    "'" + field
+  end
+
   def prefix_if_necessary(field)
-    if field.is_a?(String) && %w[- = + @].include?(field[0])
-      "'" + field
+    as_string = field.to_s
+    if starts_with_special_character?(as_string)
+      prefix(as_string)
     else
       field
     end
   end
 
   def sanitize_field(field)
-    if field.nil?
+    if field.nil? || field.is_a?(Numeric)
       field
     else
-      encoded = field.encode(CSV::ConverterEncoding)
-      prefix_if_necessary(encoded)
+      prefix_if_necessary(field)
     end
-  rescue StandardError # encoding conversion errors
-    field
   end
 
   def sanitize_row(row)
     case row
     when self.class::Row
-    then row.fields.map { |field| sanitize_field(field) }
+      then row.fields.map { |field| sanitize_field(field) }
     when Hash
-    then @headers.map { |header| sanitize_field(row[header]) }
+      then @headers.map { |header| sanitize_field(row[header]) }
     else
       row.map { |field| sanitize_field(field) }
     end

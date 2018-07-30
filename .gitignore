@@ -8,6 +8,8 @@
 /tmp/
 /.idea/
 csv-safe*.gem
+*.swp
 
 # rspec failure tracking
 .rspec_status
+Gemfile.lock

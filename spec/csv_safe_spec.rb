@@ -19,8 +19,20 @@ RSpec.describe CSVSafe do
     end
 
     context 'with a field that does not require sanitization' do
-      let(:field) { 'Jane Doe' }
-      it { should eq field }
+      context 'because it is a plain string' do
+        let(:field) { 'Jane Doe' }
+        it { should eq field }
+      end
+
+      context 'because it a positive number' do
+        let(:field) { 123 }
+        it { should eq field }
+      end
+
+      context 'because it a negative number' do
+        let(:field) { -123 }
+        it { should eq field }
+      end
     end
 
     context 'with a field that starts with a +' do
@@ -53,6 +65,36 @@ RSpec.describe CSVSafe do
       it 'should not error' do
         expect { subject }.to_not raise_error
       end
+    end
+
+    # TODO: this file is too big?
+
+    context 'with a field that is a non-String' do
+      context 'when the `to_s` does not require sanitization' do
+        class ByPassSafe
+          def self.to_s
+            'Hello World'
+          end
+        end
+        let(:field) { ByPassSafe }
+        it 'should not error' do
+          expect { subject }.to_not raise_error
+        end
+      end
+
+      context 'when the `to_s` does require sanitization' do
+        class ByPassDangerous
+          def self.to_s
+            '@Hello World'
+          end
+        end
+        let(:field) { ByPassDangerous }
+        it { should eq "'@Hello World" }
+        it 'should not error' do
+          expect { subject }.to_not raise_error
+        end
+      end
+      # TODO: tests to make sure you can't use broken encodings
     end
 
     describe '#sanitize_row' do
@@ -111,7 +153,7 @@ RSpec.describe CSVSafe do
     describe '.converters' do
       it 'should exist' do
         expect(CSVSafe.new('').converters
-                   .any? { |converter| converter.is_a? Proc }).to eq true
+          .any? { |converter| converter.is_a? Proc }).to eq true
       end
     end
 
