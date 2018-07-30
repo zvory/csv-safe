@@ -2,15 +2,15 @@
 
 [![Gem Version](https://badge.fury.io/rb/csv-safe.svg)](https://badge.fury.io/rb/csv-safe)
 
-Decorate the built in CSV library to prevent CSV injection attacks. Just drop it in
+This gem decorates the built in CSV library to prevent CSV injection attacks. Wherever you would use `CSV` in your code, use `CSVSafe`. The gem will encode your fields in UTF-8.
 
 Override `CSV#<<` to sanitize incoming rows.
 
-Override `CSV#initialize` to add a converter that will sanitize fields being read
+Override `CSV#initialize` to add a converter that will sanitize fields being read.
 
 A description of CSV injection attacks on [OWASP](https://www.owasp.org/index.php/CSV_Excel_Macro_Injection) 
 
-Made while working at [Influitive](https://influitive.com/)
+Made while working at [Influitive](https://influitive.com/). We kept writing similar code to sanitize CSV output, and I couldn't find a gem to do this for us, so I wrote this.
 
 ## Installation
 
@@ -27,11 +27,6 @@ And then execute:
 Or install it yourself as:
 
     $ gem install csv_safe
-
-## Usage
-
-Instead of using the class `CSV` in your code as you would normally, use
-`CSVSafe`. 
 
 ## Development
 
