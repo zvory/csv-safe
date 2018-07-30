@@ -242,7 +242,7 @@ RSpec.describe CSVSafe do
         let(:block) do
           proc do |csv|
             csv << %w[row of CSV data]
-            csv << %w[another row]
+            csv.add_row %w[another row]
           end
         end
 
@@ -253,7 +253,7 @@ RSpec.describe CSVSafe do
         let(:block) do
           proc do |csv|
             csv << ['+row', '@of', 'CSV', 'data']
-            csv << ['=another', '-row']
+            csv.puts ['=another', '-row']
           end
         end
         it { should_not eq expected }

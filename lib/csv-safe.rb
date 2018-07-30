@@ -13,6 +13,8 @@ class CSVSafe < CSV
   def <<(row)
     super(sanitize_row(row))
   end
+  alias_method :add_row, :<<
+  alias_method :puts,    :<<
 
   private
 

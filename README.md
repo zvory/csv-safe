@@ -1,6 +1,8 @@
 # csv-safe
 
-Decorate the built in CSV library to prevent CSV injection attacks.
+[![Gem Version](https://badge.fury.io/rb/csv-safe.svg)](https://badge.fury.io/rb/csv-safe)
+
+Decorate the built in CSV library to prevent CSV injection attacks. Just drop it in
 
 Override `CSV#<<` to sanitize incoming rows.
 
