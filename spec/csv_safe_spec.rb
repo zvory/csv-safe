@@ -96,134 +96,156 @@ RSpec.describe CSVSafe do
       end
       # TODO: tests to make sure you can't use broken encodings
     end
+  end
 
-    describe '#sanitize_row' do
-      before(:all) do
-        CSV_Instance = CSVSafe.new('')
-      end
-      subject { CSV_Instance.send(:sanitize_row, row) }
+  describe '#sanitize_row' do
+    before(:all) do
+      CSV_Instance = CSVSafe.new('')
+    end
+    subject { CSV_Instance.send(:sanitize_row, row) }
 
-      context 'when the row is a CSV::Row' do
-        context "when the fields don't require sanitization" do
-          let(:fields) { %w[Jane 30] }
-          let(:row) { CSV::Row.new(%w[Name Age], fields) }
-          it { should eq fields }
-        end
-
-        context 'when the fields require sanitization' do
-          let(:fields) { ['+Jane', '-30'] }
-          let(:expected) { ["'+Jane", "'-30"] }
-          let(:row) { CSV::Row.new(%w[Name Age], fields) }
-          it { should eq expected }
-        end
+    context 'when the row is a CSV::Row' do
+      context "when the fields don't require sanitization" do
+        let(:fields) { %w[Jane 30] }
+        let(:row) { CSV::Row.new(%w[Name Age], fields) }
+        it { should eq fields }
       end
 
-      context 'when the row is a Hash' do
-        before do
-          CSV_Instance.instance_variable_set(:@headers, %i[Name Age])
-        end
-        context "when the fields don't require sanitization" do
-          let(:row) { { Name: 'Jane', Age: '30' } }
-          let(:expected) { %w[Jane 30] }
-          it { should eq expected }
-        end
-
-        context 'when the fields require sanitization' do
-          let(:row) { { Name: '+Jane', Age: '@30' } }
-          let(:expected) { ["'+Jane", "'@30"] }
-
-          it { should eq expected }
-        end
-      end
-
-      context 'when the row is an array' do
-        context "when the fields don't require sanitization" do
-          let(:row) { %w[Jane 30] }
-          it { should eq row }
-        end
-
-        context 'when the fields require sanitization' do
-          let(:row) { ['+Jane', '-30'] }
-          let(:expected) { ["'+Jane", "'-30"] }
-          it { should eq expected }
-        end
+      context 'when the fields require sanitization' do
+        let(:fields) { ['+Jane', '-30'] }
+        let(:expected) { ["'+Jane", "'-30"] }
+        let(:row) { CSV::Row.new(%w[Name Age], fields) }
+        it { should eq expected }
       end
     end
 
-    describe '.converters' do
-      it 'should exist' do
-        expect(CSVSafe.new('').converters
-          .any? { |converter| converter.is_a? Proc }).to eq true
+    context 'when the row is a Hash' do
+      before do
+        CSV_Instance.instance_variable_set(:@headers, %i[Name Age])
+      end
+      context "when the fields don't require sanitization" do
+        let(:row) { { Name: 'Jane', Age: '30' } }
+        let(:expected) { %w[Jane 30] }
+        it { should eq expected }
+      end
+
+      context 'when the fields require sanitization' do
+        let(:row) { { Name: '+Jane', Age: '@30' } }
+        let(:expected) { ["'+Jane", "'@30"] }
+
+        it { should eq expected }
       end
     end
 
-    describe '#<<' do
-      subject { (CSVSafe.new('') << row).string }
-
-      def arr_to_line(arr)
-        arr.join(',') + "\n"
+    context 'when the row is an array' do
+      context "when the fields don't require sanitization" do
+        let(:row) { %w[Jane 30] }
+        it { should eq row }
       end
 
-      context 'with a row that does not require sanitization' do
-        let(:row) { "123,John Doe,    abc     de, /!@\#$%^&*()_+".split(',') }
+      context 'when the fields require sanitization' do
+        let(:row) { ['+Jane', '-30'] }
+        let(:expected) { ["'+Jane", "'-30"] }
+        it { should eq expected }
+      end
+    end
+  end
 
-        it { should eq arr_to_line(row) }
+  describe 'converters' do
+    it 'should add the sanitizing converter' do
+      expect(CSVSafe.new('').converters
+        .any? { |converter| converter.is_a? Proc }).to eq true
+    end
+
+    context 'when using existing converters' do
+      subject do
+        CSVSafe.generate_line(['2018-03-01'], converters: %i[numberic date])
+      end
+      let(:expected) do
+        CSV.generate_line(['2018-03-01'], converters: %i[numberic date])
       end
 
-      context 'with a row that contains dates' do
+      it { should eq expected }
+    end
+  end
+
+  describe 'options' do
+    context 'with options passed' do
+      subject do
+        CSVSafe.generate_line(['2018-03-01'], force_quotes: true)
+      end
+      let(:expected) { CSV.generate_line(['2018-03-01'], force_quotes: true) }
+
+      it { should eq expected }
+    end
+  end
+
+  describe '#<<' do
+    subject { (CSVSafe.new('') << row).string }
+
+    def arr_to_line(arr)
+      arr.join(',') + "\n"
+    end
+
+    context 'with a row that does not require sanitization' do
+      let(:row) { "123,John Doe,    abc     de, /!@\#$%^&*()_+".split(',') }
+
+      it { should eq arr_to_line(row) }
+    end
+
+    context 'with a row that contains dates' do
+      let(:row) do
+        ['hi mom', Time.now]
+      end
+      it { should eq arr_to_line(row) }
+      it 'should not raise an error' do
+        expect { subject }.to_not raise_error
+      end
+    end
+
+    context 'with a row that requires sanitization' do
+      context 'because it starts with an @' do
         let(:row) do
-          ['hi mom', Time.now]
+          ['@hi']
         end
-        it { should eq arr_to_line(row) }
-        it 'should not raise an error' do
-          expect { subject }.to_not raise_error
+
+        let(:expected) do
+          ["'@hi"]
         end
+        it { should eq arr_to_line(expected) }
       end
 
-      context 'with a row that requires sanitization' do
-        context 'because it starts with an @' do
-          let(:row) do
-            ['@hi']
-          end
-
-          let(:expected) do
-            ["'@hi"]
-          end
-          it { should eq arr_to_line(expected) }
+      context 'because it starts with a -' do
+        let(:row) do
+          ["--2+3+cmd|' /C calc'!'E2'"]
         end
 
-        context 'because it starts with a -' do
-          let(:row) do
-            ["--2+3+cmd|' /C calc'!'E2'"]
-          end
+        let(:expected) do
+          ["'--2+3+cmd|' /C calc'!'E2'"]
+        end
+        it { should eq arr_to_line(expected) }
+      end
 
-          let(:expected) do
-            ["'--2+3+cmd|' /C calc'!'E2'"]
-          end
-          it { should eq arr_to_line(expected) }
+      context 'because it starts with an =' do
+        let(:row) do
+          ["=-2+3+cmd|' /C calc'!'E2'"]
         end
 
-        context 'because it starts with an =' do
-          let(:row) do
-            ["=-2+3+cmd|' /C calc'!'E2'"]
-          end
+        let(:expected) do
+          ["'=-2+3+cmd|' /C calc'!'E2'"]
+        end
+        it { should eq arr_to_line(expected) }
+      end
 
-          let(:expected) do
-            ["'=-2+3+cmd|' /C calc'!'E2'"]
-          end
-          it { should eq arr_to_line(expected) }
+      context 'because it starts with a +' do
+        let(:row) do
+          ["+-2+3+cmd|' /C calc'!'E2'"]
         end
 
-        context 'because it starts with a +' do
-          let(:row) do
-            ["+-2+3+cmd|' /C calc'!'E2'"]
-          end
-
-          let(:expected) do
-            ["'+-2+3+cmd|' /C calc'!'E2'"]
-          end
-          it { should eq arr_to_line(expected) }
+        let(:expected) do
+          ["'+-2+3+cmd|' /C calc'!'E2'"]
         end
+        it { should eq arr_to_line(expected) }
       end
     end
   end

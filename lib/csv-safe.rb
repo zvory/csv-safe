@@ -4,17 +4,17 @@ require 'csv'
 # Override << to sanitize incoming rows
 # Override initialize to add a converter that will sanitize fields being read
 class CSVSafe < CSV
-  def initialize(data, options = {})
+  def initialize(data, **options)
     options[:converters] = [] if options[:converters].nil?
     options[:converters] << lambda(&method(:sanitize_field))
-    super
+    super(data, **options)
   end
 
   def <<(row)
     super(sanitize_row(row))
   end
-  alias_method :add_row, :<<
-  alias_method :puts,    :<<
+  alias add_row <<
+  alias puts <<
 
   private
 
