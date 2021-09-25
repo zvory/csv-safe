@@ -4,9 +4,9 @@ require 'csv-safe'
 
 Gem::Specification.new do |spec|
   spec.name          = 'csv-safe'
-  spec.version       = '1.2.0'
+  spec.version       = '2.0.0'
   spec.authors       = ['Alex Zvorygin']
-  spec.email         = ['alexander.zvorygin@influitive.com']
+  spec.email         = ['grafetu@gmail.com']
 
   spec.summary       = 'Decorate ruby CSV library to sanitize ' \
     'output CSV against CSV injection attacks.'
@@ -19,7 +19,9 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'bundler', '~> 1.16'
-  spec.add_development_dependency 'rake', '~> 10.0'
+  spec.required_ruby_version = '>= 3.0.0'
+
+  spec.add_development_dependency 'bundler', '>= 2.1.4'
+  spec.add_development_dependency "rake", ">= 12.3.3"
   spec.add_development_dependency 'rspec', '~> 3.0'
 end
