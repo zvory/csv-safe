@@ -21,7 +21,7 @@ class CSVSafe < CSV
   # TODO: performance test if i'm adding
   # too many method calls to hot code
   def starts_with_special_character?(str)
-    %w[- = + @].include?(str[0])
+    %w[- = + @ % |].include?(str[0])
   end
 
   def prefix(field)

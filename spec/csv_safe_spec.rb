@@ -59,6 +59,18 @@ RSpec.describe CSVSafe do
       it { should eq expected }
     end
 
+    context 'with a field that starts with a %' do
+      let(:field) { "%0A-2+3+cmd|' /C calc'!'E2'" }
+      let(:expected) { "'%0A-2+3+cmd|' /C calc'!'E2'" }
+      it { should eq expected }
+    end
+
+    context 'with a field that starts with a %' do
+      let(:field) { "|-2+3+cmd|' /C calc'!'E2'" }
+      let(:expected) { "'|-2+3+cmd|' /C calc'!'E2'" }
+      it { should eq expected }
+    end
+
     context 'with a field that is a date' do
       let(:field) { Time.now }
       it { should eq field }
@@ -221,6 +233,17 @@ RSpec.describe CSVSafe do
 
           let(:expected) do
             ["'+-2+3+cmd|' /C calc'!'E2'"]
+          end
+          it { should eq arr_to_line(expected) }
+        end
+
+        context 'because it starts with a %' do
+          let(:row) do
+            ["%0A-2+3+cmd|' /C calc'!'E2'"]
+          end
+
+          let(:expected) do
+            ["'%0A-2+3+cmd|' /C calc'!'E2'"]
           end
           it { should eq arr_to_line(expected) }
         end
