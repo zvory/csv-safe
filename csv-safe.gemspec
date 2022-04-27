@@ -4,7 +4,7 @@ require 'csv-safe'
 
 Gem::Specification.new do |spec|
   spec.name          = 'csv-safe'
-  spec.version       = '3.0.0'
+  spec.version       = '3.1.0'
   spec.authors       = ['Alex Zvorygin']
   spec.email         = ['grafetu@gmail.com']
 

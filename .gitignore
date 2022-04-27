@@ -14,3 +14,5 @@ csv-safe*.gem
 .rspec_status
 Gemfile.lock
 coverage
+
+.DS_Store
