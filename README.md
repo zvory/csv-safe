@@ -20,7 +20,7 @@ Made while working at [Influitive](https://influitive.com/). We kept writing sim
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'csv-writer-safe'
+gem 'csv-safe'
 ```
 
 And then execute:
@@ -29,7 +29,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install csv_safe
+    $ gem install csv-safe
 
 ## Development
 
