@@ -18,10 +18,8 @@ class CSVSafe < CSV
 
   private
 
-  # TODO: performance test if i'm adding
-  # too many method calls to hot code
   def starts_with_special_character?(str)
-    %w[- = + @ % |].include?(str[0])
+    str.start_with?('-', '=', '+', '@', '%', '|')
   end
 
   def prefix(field)
