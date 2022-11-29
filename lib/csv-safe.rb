@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'csv'
 
 # Decorate the built in CSV library
