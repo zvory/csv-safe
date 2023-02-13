@@ -21,7 +21,7 @@ class CSVSafe < CSV
   private
 
   def starts_with_special_character?(str)
-    str.start_with?('-', '=', '+', '@', '%', '|')
+    str.start_with?("-", "=", "+", "@", "%", "|", "\r", "\t")
   end
 
   def prefix(field)

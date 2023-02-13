@@ -41,6 +41,18 @@ RSpec.describe CSVSafe do
       it { should eq expected }
     end
 
+    context 'with a field that starts with a \r' do
+      let(:field) { "\r2+3+cmd|' /C calc'!'E2'" }
+      let(:expected) { "'\r2+3+cmd|' /C calc'!'E2'" }
+      it { should eq expected }
+    end
+
+    context 'with a field that starts with a \t' do
+      let(:field) { "\t2+3+cmd|' /C calc'!'E2'" }
+      let(:expected) { "'\t2+3+cmd|' /C calc'!'E2'" }
+      it { should eq expected }
+    end
+
     context 'with a field that starts with a @' do
       let(:field) { "@=-2+3+cmd|' /C calc'!'E2'" }
       let(:expected) { "'@=-2+3+cmd|' /C calc'!'E2'" }
