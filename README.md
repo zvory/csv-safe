@@ -10,7 +10,7 @@ What this gem does specifically:
  - Override `CSV#<<` to sanitize incoming rows.
  - Override `CSV#initialize` to add a converter that will sanitize fields being read.
 
-A description of CSV injection attacks on [OWASP](https://www.owasp.org/index.php/CSV_Excel_Macro_Injection) 
+A description of CSV injection attacks on [OWASP](https://owasp.org/www-community/attacks/CSV_Injection) 
 
 Made while working at [Influitive](https://influitive.com/). We kept writing similar code to sanitize CSV output, and I couldn't find a gem to do this for us, so I wrote this. 
 
