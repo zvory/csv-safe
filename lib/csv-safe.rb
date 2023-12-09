@@ -59,3 +59,7 @@ class CSVSafe < CSV
     end
   end
 end
+
+def CSVSafe(*args, **options, &block)
+  CSVSafe.instance(*args, **options, &block)
+end
