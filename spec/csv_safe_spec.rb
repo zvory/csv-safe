@@ -91,6 +91,95 @@ RSpec.describe CSVSafe do
       end
     end
 
+    context 'with negative numbers' do
+      subject { (CSVSafe.new('') << row).string }
+
+      context 'with a simple negative number' do
+        let(:row) { ['-24.34', '2'] }
+        it { should eq "-24.34,2\n" }
+      end
+
+      context 'with basic negative currency values (USD, EUR, GBP, JPY)' do
+        let(:row) { ['-$2,000.00', '-€1,000.00', '-£3,500.75', '-¥5,000'] }
+        it { should eq "\"-$2,000.00\",\"-€1,000.00\",\"-£3,500.75\",\"-¥5,000\"\n" }
+      end
+
+      context 'with complex currency formats using various separators' do
+        let(:row) { ['-$2,000,000.00', '-€ 1.000,00', '-£3.500,75', '-¥5,000,000'] }
+        it { should eq "\"-$2,000,000.00\",\"-€ 1.000,00\",\"-£3.500,75\",\"-¥5,000,000\"\n" }
+      end
+
+      context 'with currency codes before symbols' do
+        let(:row) { ['-USD $1,234.56', '-EUR €1.234,56', '-GBP £1,234.56', '-JPY ¥1,234'] }
+        it { should eq "\"-USD $1,234.56\",\"-EUR €1.234,56\",\"-GBP £1,234.56\",\"-JPY ¥1,234\"\n" }
+      end
+
+      context 'with currency codes attached to symbols' do
+        let(:row) { ['-USD$1,234.56', '-EUR€1.234,56', '-GBP£1,234.56', '-JPY¥1,234'] }
+        it { should eq "\"-USD$1,234.56\",\"-EUR€1.234,56\",\"-GBP£1,234.56\",\"-JPY¥1,234\"\n" }
+      end
+
+      context 'with currency codes alone' do
+        let(:row) { ['-USD 1,234.56', '-EUR 1.234,56', '-GBP 1,234.56', '-JPY 1,234'] }
+        it { should eq "\"-USD 1,234.56\",\"-EUR 1.234,56\",\"-GBP 1,234.56\",\"-JPY 1,234\"\n" }
+      end
+
+      context 'with other international currencies' do
+        let(:row) do
+          [
+            '-₹1,00,000.00', # Indian Rupee
+            '-₽1 234,56',     # Russian Ruble
+            "-₣1'234.56",     # Swiss Franc
+            '-₦1,234.56',     # Nigerian Naira
+            '-₩1,234',        # Korean Won
+            '-₱1,234.56',     # Philippine Peso
+            '-₴1 234,56',     # Ukrainian Hryvnia
+            '-₺1.234,56'      # Turkish Lira
+          ]
+        end
+        it {
+          should eq "\"-₹1,00,000.00\",\"-₽1 234,56\",-₣1'234.56,\"-₦1,234.56\",\"-₩1,234\",\"-₱1,234.56\",\"-₴1 234,56\",\"-₺1.234,56\"\n"
+        }
+      end
+
+      context 'with mixed values' do
+        let(:row) { ['normal text', '-24.34', '-$2,000.00', '@dangerous', '-not-numeric'] }
+        it { should eq "normal text,-24.34,\"-$2,000.00\",'@dangerous,'-not-numeric\n" }
+      end
+
+      context 'with non-standard numeric formats' do
+        let(:row) do
+          [
+            '-1,234,567.89', # Standard US thousands separator
+            '-1.234.567,89',      # European format
+            '-1 234 567,89',      # Space as thousands separator
+            "-1'234'567.89"       # Apostrophe as thousands separator
+          ]
+        end
+        it { should eq "\"-1,234,567.89\",\"-1.234.567,89\",\"-1 234 567,89\",-1'234'567.89\n" }
+      end
+
+      context 'with scientific notation' do
+        let(:row) { ['-1.23e4', '-1.23E+4', '-1.23e-4'] }
+        it { should eq "'-1.23e4,'-1.23E+4,'-1.23e-4\n" }
+      end
+
+      context 'with zero values in different formats' do
+        let(:row) { ['-0', '-0.0', '-0.00', '-$0.00', '-€0,00'] }
+        it { should eq "-0,-0.0,-0.00,-$0.00,\"-€0,00\"\n" }
+      end
+
+      context 'with negative percentages' do
+        let(:row) { ['-10%', '-10.5%', '-10,5%'] }
+        it { should eq "'-10%,'-10.5%,\"'-10,5%\"\n" }
+      end
+
+      context 'with other special negative values' do
+        let(:row) { ['-∞', '-NaN', '-Inf'] }
+        it { should eq "'-∞,'-NaN,'-Inf\n" }
+      end
+    end
+
     # TODO: this file is too big?
 
     context 'with a field that is a non-String' do
@@ -136,7 +225,7 @@ RSpec.describe CSVSafe do
 
         context 'when the fields require sanitization' do
           let(:fields) { ['+Jane', '-30'] }
-          let(:expected) { ["'+Jane", "'-30"] }
+          let(:expected) { ["'+Jane", '-30'] }
           let(:row) { CSV::Row.new(%w[Name Age], fields) }
           it { should eq expected }
         end
@@ -168,7 +257,7 @@ RSpec.describe CSVSafe do
 
         context 'when the fields require sanitization' do
           let(:row) { ['+Jane', '-30'] }
-          let(:expected) { ["'+Jane", "'-30"] }
+          let(:expected) { ["'+Jane", '-30'] }
           it { should eq expected }
         end
       end

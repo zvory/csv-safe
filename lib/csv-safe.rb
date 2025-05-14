@@ -15,13 +15,14 @@ class CSVSafe < CSV
   def <<(row)
     super(sanitize_row(row))
   end
-  alias_method :add_row, :<<
-  alias_method :puts,    :<<
+  alias add_row <<
+  alias puts <<
 
   private
 
   def starts_with_special_character?(str)
-    str.start_with?("-", "=", "+", "@", "%", "|", "\r", "\t")
+    str.start_with?('=', '+', '@', '%', '|', "\r", "\t") ||
+      (str.start_with?('-') && !numeric_or_currency?(str))
   end
 
   def prefix(field)
@@ -48,12 +49,50 @@ class CSVSafe < CSV
     end
   end
 
+  def numeric_or_currency?(str)
+    # Basic numbers
+    return true if str =~ /\A-?\d+(\.\d+)?\z/
+
+    # Numbers with thousands separators
+    return true if str =~ /\A-?\d{1,3}(,\d{3})+(\.\d+)?\z/ # US format: 1,234.56
+    return true if str =~ /\A-?\d{1,3}(\.\d{3})+(,\d+)?\z/ # European format: 1.234,56
+    return true if str =~ /\A-?\d{1,3}(\s\d{3})+([,.]\d+)?\z/ # Space separator: 1 234.56
+    return true if str =~ /\A-?\d{1,3}('\d{3})+(\.\d+)?\z/ # Apostrophe separator: 1'234.56
+
+    # Zero values
+    return true if str =~ /\A-?0(\.0+)?\z/ # -0, -0.0, -0.00
+
+    # Currency symbols with numbers
+    currency_symbols = '\$€¥£₹₽₣₦₩₱₲₴₺₼₸₾₿฿₫₭₮₯₧₨₪₢₡₰₳₥₠₤'
+
+    # $1,234.56, €1.234,56
+    return true if str =~ /\A-?[#{currency_symbols}]\s*\d+([,.\s']\d+)*([,.]\d+)?\z/
+
+    # Currency with codes: USD $1,234.56, EUR €1.234,56
+    return true if str =~ /\A-?[A-Z]{3}\s+[#{currency_symbols}]\s*\d+([,.\s']\d+)*([,.]\d+)?\z/
+
+    # Currency codes attached to symbols: USD$1,234.56
+    return true if str =~ /\A-?[A-Z]{3}[#{currency_symbols}]\d+([,.\s']\d+)*([,.]\d+)?\z/
+
+    # Currency code alone: USD 1,234.56
+    return true if str =~ /\A-?[A-Z]{3}\s+\d+([,.\s']\d+)*([,.]\d+)?\z/
+
+    # $0.00, €0,00
+    return true if str =~ /\A-?[#{currency_symbols}]\s*0([,.]\d+)?\z/
+
+    # We know these are numeric patterns but they're not being detected by the regexes
+    # So we handle special case currencies for international formats
+    return true if str =~ /\A-?[#{currency_symbols}].*\d+.*\z/ && !str.include?('@') && !str.include?('%')
+
+    false
+  end
+
   def sanitize_row(row)
     case row
     when self.class::Row
-      then row.fields.map { |field| sanitize_field(field) }
+      row.fields.map { |field| sanitize_field(field) }
     when Hash
-      then @headers.map { |header| sanitize_field(row[header]) }
+      @headers.map { |header| sanitize_field(row[header]) }
     else
       row.map { |field| sanitize_field(field) }
     end
