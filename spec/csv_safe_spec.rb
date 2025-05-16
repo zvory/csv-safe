@@ -144,13 +144,10 @@ RSpec.describe CSVSafe do
 
       context 'when the row is a Hash' do
         before(:all) do
-          CSV_Instance = CSVSafe.new('')
+          CSV_Instance = CSVSafe.new('', headers: %i[Name Age])
         end
         subject { CSV_Instance.send(:sanitize_row, row) }
 
-        before do
-          CSV_Instance.instance_variable_set(:@headers, %i[Name Age])
-        end
         context "when the fields don't require sanitization" do
           let(:row) { { Name: 'Jane', Age: '30' } }
           let(:expected) { %w[Jane 30] }
@@ -168,9 +165,9 @@ RSpec.describe CSVSafe do
           headers = %i[a b c]
           payload = { b: :b, a: :a, c: :c }
 
-          output = CSVSafe.generate(headers: true) { |csv| csv << headers; csv << payload }
+          output = CSVSafe.generate(headers: true) { |csv| csv << headers; csv << payload }.split "\n"
 
-          expect(output).to eq("a,b,c\n\"[:b, :b]\",\"[:a, :a]\",\"[:c, :c]\"\n")
+          expect(output).to eq(["a,b,c", "a,b,c"])
         end
       end
 
