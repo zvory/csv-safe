@@ -49,13 +49,10 @@ class CSVSafe < CSV
   end
 
   def sanitize_row(row)
-    case row
-    when self.class::Row
-      then row.fields.map { |field| sanitize_field(field) }
-    when Hash
-      then headers.map { |header| sanitize_field(row[header]) }
-    else
-      row.map { |field| sanitize_field(field) }
-    end
+    return row.fields.map { |field| sanitize_field(field) } if row.is_a?(self.class::Row)
+
+    return @headers.map { |header| sanitize_field(row[header]) } if row.is_a?(Hash) && !@headers.nil?
+
+    row.map { |field| sanitize_field(field) }
   end
 end
