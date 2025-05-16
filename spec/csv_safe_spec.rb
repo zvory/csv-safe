@@ -122,12 +122,12 @@ RSpec.describe CSVSafe do
     end
 
     describe '#sanitize_row' do
-      before(:all) do
-        CSV_Instance = CSVSafe.new('')
-      end
-      subject { CSV_Instance.send(:sanitize_row, row) }
-
       context 'when the row is a CSV::Row' do
+        before(:all) do
+          CSV_Instance = CSVSafe.new('')
+        end
+        subject { CSV_Instance.send(:sanitize_row, row) }
+
         context "when the fields don't require sanitization" do
           let(:fields) { %w[Jane 30] }
           let(:row) { CSV::Row.new(%w[Name Age], fields) }
@@ -143,6 +143,11 @@ RSpec.describe CSVSafe do
       end
 
       context 'when the row is a Hash' do
+        before(:all) do
+          CSV_Instance = CSVSafe.new('')
+        end
+        subject { CSV_Instance.send(:sanitize_row, row) }
+
         before do
           CSV_Instance.instance_variable_set(:@headers, %i[Name Age])
         end
@@ -158,9 +163,23 @@ RSpec.describe CSVSafe do
 
           it { should eq expected }
         end
+
+        it "does not crash" do
+          headers = %i[a b c]
+          payload = { b: :b, a: :a, c: :c }
+
+          output = CSVSafe.generate(headers: true) { |csv| csv << headers; csv << payload }
+
+          expect(output).to eq("a,b,c\n\"[:b, :b]\",\"[:a, :a]\",\"[:c, :c]\"\n")
+        end
       end
 
       context 'when the row is an array' do
+        before(:all) do
+          CSV_Instance = CSVSafe.new('')
+        end
+        subject { CSV_Instance.send(:sanitize_row, row) }
+
         context "when the fields don't require sanitization" do
           let(:row) { %w[Jane 30] }
           it { should eq row }
