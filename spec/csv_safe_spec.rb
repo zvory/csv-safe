@@ -53,6 +53,37 @@ RSpec.describe CSVSafe do
       it { should eq expected }
     end
 
+    context 'with a field that starts with a \n' do
+      let(:field) { "\n2+3+cmd|' /C calc'!'E2'" }
+      let(:expected) { "'\n2+3+cmd|' /C calc'!'E2'" }
+      it { should eq expected }
+    end
+
+    context 'with a field that has leading whitespace before a formula character' do
+      context 'a single leading space' do
+        let(:field) { " =cmd|' /C calc'!'E2'" }
+        let(:expected) { "' =cmd|' /C calc'!'E2'" }
+        it { should eq expected }
+      end
+
+      context 'multiple leading spaces' do
+        let(:field) { "   =cmd|' /C calc'!'E2'" }
+        let(:expected) { "'   =cmd|' /C calc'!'E2'" }
+        it { should eq expected }
+      end
+
+      context 'leading space then @' do
+        let(:field) { " @SUM(1,2)" }
+        let(:expected) { "' @SUM(1,2)" }
+        it { should eq expected }
+      end
+
+      context 'leading whitespace before harmless content stays unchanged' do
+        let(:field) { "  hello" }
+        it { should eq "  hello" }
+      end
+    end
+
     context 'with a field that starts with a @' do
       let(:field) { "@=-2+3+cmd|' /C calc'!'E2'" }
       let(:expected) { "'@=-2+3+cmd|' /C calc'!'E2'" }
