@@ -21,6 +21,8 @@ class CSVSafe < CSV
   private
 
   def starts_with_special_character?(str)
+    return false if str.start_with?('+') && phone_number?(str)
+
     str.start_with?("-", "=", "+", "@", "%", "|", "\r", "\t")
   end
 
@@ -54,5 +56,9 @@ class CSVSafe < CSV
     return headers.map { |header| sanitize_field(row[header]) } if row.is_a?(Hash) && !headers.nil?
 
     row.map { |field| sanitize_field(field) }
+  end
+
+  def phone_number?(value)
+    value.match?(/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{2,3}?[-\s\.]?[0-9]{2,3}[-\s\.]?[0-9]{2,4}$/)
   end
 end

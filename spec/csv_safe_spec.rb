@@ -91,6 +91,14 @@ RSpec.describe CSVSafe do
       end
     end
 
+    context 'with a field that is a phone number' do
+      let(:field) { '+353 89 999 9999' }
+      it { should eq field }
+      it 'should not error' do
+        expect { subject }.to_not raise_error
+      end
+    end
+
     # TODO: this file is too big?
 
     context 'with a field that is a non-String' do
@@ -213,6 +221,16 @@ RSpec.describe CSVSafe do
       context 'with a row that contains dates' do
         let(:row) do
           ['hi mom', Time.now]
+        end
+        it { should eq arr_to_line(row) }
+        it 'should not raise an error' do
+          expect { subject }.to_not raise_error
+        end
+      end
+
+      context 'with a row that contains phone numbers' do
+        let(:row) do
+          ['+353 89 999 9999', '+353899999999', '+353-999-999-999', '+353 899 99 99']
         end
         it { should eq arr_to_line(row) }
         it 'should not raise an error' do
