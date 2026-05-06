@@ -20,8 +20,12 @@ class CSVSafe < CSV
 
   private
 
+  DANGEROUS_LEADING_CHARS = ["-", "=", "+", "@", "%", "|", "\r", "\t", "\n"].freeze
+  private_constant :DANGEROUS_LEADING_CHARS
+
   def starts_with_special_character?(str)
-    str.start_with?("-", "=", "+", "@", "%", "|", "\r", "\t")
+    str.start_with?(*DANGEROUS_LEADING_CHARS) ||
+      str.lstrip.start_with?(*DANGEROUS_LEADING_CHARS)
   end
 
   def prefix(field)
