@@ -84,6 +84,34 @@ RSpec.describe CSVSafe do
       end
     end
 
+    # Regression guard: a leading \t/\r/\n is both a dangerous char and
+    # whitespace. The non-lstrip branch of starts_with_special_character? must
+    # keep prefixing these even though the rest of the field is harmless --
+    # lstrip alone would strip the char and let it through.
+    context 'with a leading whitespace-control char before harmless content' do
+      context 'leading tab' do
+        let(:field) { "\tfoo" }
+        let(:expected) { "'\tfoo" }
+        it { should eq expected }
+      end
+
+      context 'leading carriage return' do
+        let(:field) { "\rfoo" }
+        let(:expected) { "'\rfoo" }
+        it { should eq expected }
+      end
+    end
+
+    context 'with a field containing an invalid byte sequence' do
+      let(:field) { "\xff\xfe plain".dup.force_encoding('UTF-8') }
+      it 'does not raise (lstrip would otherwise blow up)' do
+        expect { subject }.to_not raise_error
+      end
+      it 'passes the field through unchanged' do
+        expect(subject).to eq field
+      end
+    end
+
     context 'with a field that starts with a @' do
       let(:field) { "@=-2+3+cmd|' /C calc'!'E2'" }
       let(:expected) { "'@=-2+3+cmd|' /C calc'!'E2'" }
