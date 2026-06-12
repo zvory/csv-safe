@@ -24,8 +24,15 @@ class CSVSafe < CSV
   private_constant :DANGEROUS_LEADING_CHARS
 
   def starts_with_special_character?(str)
-    str.start_with?(*DANGEROUS_LEADING_CHARS) ||
-      str.lstrip.start_with?(*DANGEROUS_LEADING_CHARS)
+    # The first check is load-bearing, not redundant with the second: \r, \t
+    # and \n are both dangerous leading chars AND whitespace that lstrip
+    # removes, so the lstrip check alone would miss a field like "\tfoo".
+    return true if str.start_with?(*DANGEROUS_LEADING_CHARS)
+
+    # lstrip raises ArgumentError on invalid byte sequences; for those, fall
+    # back to the first-char check only (preserves the pre-existing
+    # non-raising behavior for malformed-encoding fields).
+    str.valid_encoding? && str.lstrip.start_with?(*DANGEROUS_LEADING_CHARS)
   end
 
   def prefix(field)
